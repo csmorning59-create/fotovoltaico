@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Fotovoltaico con BESS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo::before {
+            content: "☀️";
+            font-size: 28px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-badge {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .admin-badge {
+            background: #ff6b6b;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background: #718096;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .btn-success {
+            background: #38a169;
+        }
+
+        .btn-success:hover {
+            background: #2f855a;
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            min-height: 600px;
+        }
+
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .login-form h2 {
+            margin-bottom: 30px;
+            color: #667eea;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .projects-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .projects-table th,
+        .projects-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .projects-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .projects-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-bozza { background: #fed7d7; color: #c53030; }
+        .status-da-analizzare { background: #fef5e7; color: #d69e2e; }
+        .status-in-analisi { background: #bee3f8; color: #3182ce; }
+        .status-in-revisione { background: #e6fffa; color: #319795; }
+        .status-completato { background: #c6f6d5; color: #38a169; }
+        .status-archiviato { background: #e2e8f0; color: #718096; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-header h3 {
+            color: #667eea;
+            font-size: 20px;
+        }
+
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #718096;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #e53e3e;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+
+        .alert-info {
+            background: #bee3f8;
+            color: #2a4365;
+            border: 1px solid #90cdf4;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filters select {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .checkbox-column {
+            width: 40px;
+            text-align: center;
+        }
+
+        .actions-column {
+            width: 120px;
+            text-align: center;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .projects-table {
+                font-size: 12px;
+            }
+            
+            .projects-table th,
+            .projects-table td {
+                padding: 8px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                Tool Fotovoltaico con BESS
+            </div>
+            <div class="user-info" id="userInfo" style="display: none;">
+                <span class="user-badge" id="userBadge"></span>
+                <button class="btn btn-secondary" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Login Form -->
+            <div id="loginSection">
+                <div class="login-form">
+                    <h2>Accesso al Sistema</h2>
+                    <div id="loginAlert"></div>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <button type="submit" class="btn">
+                            <span id="loginSpinner" class="loading hidden"></span>
+                            Accedi
+                        </button>
+                    </form>
+                    <div style="margin-top: 20px; padding: 15px; background: #f7fafc; border-radius: 8px; font-size: 14px; color: #4a5568;">
+                        <strong>Credenziali di test:</strong><br>
+                        Username: <code>admin</code><br>
+                        Password: <code>admin123</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <div id="dashboardSection" class="dashboard">
+                <!-- Stats Cards -->
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3>Progetti Totali</h3>
+                        <div class="stat-number" id="totalProjects">0</div>
+                        <div class="stat-label">progetti nel sistema</div>
+                    </div>
+                    <div class="card">
+                        <h3>In Analisi</h3>
+                        <div class="stat-number" id="activeProjects">0</div>
+                        <div class="stat-label">progetti attivi</div>
+                    </div>
+                    <div class="card">
+                        <h3>Completati</h3>
+                        <div class="stat-number" id="completedProjects">0</div>
+                        <div class="stat-label">progetti completati</div>
+                    </div>
+                    <div class="card">
+                        <h3>Potenza Totale</h3>
+                        <div class="stat-number" id="totalPower">0</div>
+                        <div class="stat-label">kWp installabili</div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div style="margin-bottom: 30px;">
+                    <button class="btn" onclick="showCreateProjectModal()">
+                        ➕ Nuovo Progetto
+                    </button>
+                    <button class="btn btn-success" id="bulkImportBtn" onclick="showBulkImportModal()" style="display: none;">
+                        📁 Import Massivo
+                    </button>
+                    <button class="btn btn-secondary" onclick="refreshProjects()">
+                        🔄 Aggiorna
+                    </button>
+                </div>
+
+                <!-- Filters and Bulk Actions -->
+                <div class="filters">
+                    <label>Filtra per stato:</label>
+                    <select id="statusFilter" onchange="filterProjects()">
+                        <option value="">Tutti</option>
+                        <option value="Bozza">Bozza</option>
+                        <option value="Da Analizzare">Da Analizzare</option>
+                        <option value="In Analisi">In Analisi</option>
+                        <option value="In Revisione">In Revisione</option>
+                        <option value="Completato">Completato</option>
+                        <option value="Archiviato">Archiviato</option>
+                    </select>
+                </div>
+
+                <div class="bulk-actions" id="bulkActions" style="display: none;">
+                    <button class="btn btn-sm" onclick="selectAllProjects()">Seleziona Tutti</button>
+                    <button class="btn btn-sm btn-secondary" onclick="deselectAllProjects()">Deseleziona Tutti</button>
+                    <select id="bulkAssignUser" style="display: none;">
+                        <option value="">Seleziona utente...</option>
+                    </select>
+                    <button class="btn btn-sm btn-success" onclick="bulkAssignProjects()" style="display: none;">
+                        Assegna Selezionati
+                    </button>
+                </div>
+
+                <!-- Projects Table -->
+                <table class="projects-table">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-column" id="adminCheckboxHeader" style="display: none;">
+                                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                            </th>
+                            <th>Nome Progetto</th>
+                            <th>Indirizzo</th>
+                            <th>Stato</th>
+                            <th>Assegnato a</th>
+                            <th>Ultimo Aggiornamento</th>
+                            <th class="actions-column">Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectsTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px; color: #718096;">
+                                <div class="loading"></div>
+                                <div style="margin-top: 10px;">Caricamento progetti...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Project Modal -->
+    <div id="createProjectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nuovo Progetto</h3>
+                <span class="close" onclick="closeModal('createProjectModal')">&times;</span>
+            </div>
+            <div id="createProjectAlert"></div>
+            <form id="createProjectForm">
+                <div class="form-group">
+                    <label for="projectName">Nome Progetto *</label>
+                    <input type="text" id="projectName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="projectAddress">Indirizzo</label>
+                    <input type="text" id="projectAddress" name="address">
+                </div>
+                <div class="form-group">
+                    <label for="projectSurface">Superficie Lorda (m²)</label>
+                    <input type="number" id="projectSurface" name="superficie_lorda_mq" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="projectNotes">Note</label>
+                    <textarea id="projectNotes" name="notes" rows="3"></textarea>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createProjectModal')">Annulla</button>
+                    <button type="submit" class="btn">Crea Progetto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Import Modal -->
+    <div id="bulkImportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Import Massivo Progetti</h3>
+                <span class="close" onclick="closeModal('bulkImportModal')">&times;</span>
+            </div>
+            <div id="bulkImportAlert"></div>
+            <div style="margin-bottom: 20px; padding: 15px; background: #f7fafc; border-radius: 8px; font-size: 14px;">
+                <strong>Formato file richiesto:</strong><br>
+                Il file CSV/Excel deve contenere le colonne: REGIONE, PROV, COMUNE, COD SITO, INDIRIZZO, DESCRIZIONE IMMOBILE, TIPO PROPRIETÀ, CLUSTER POTENZA
+            </div>
+            <form id="bulkImportForm">
+                <div class="form-group">
+                    <label for="importFile">Seleziona File (CSV o Excel)</label>
+                    <input type="file" id="importFile" accept=".csv,.xlsx,.xls" required>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('bulkImportModal')">Annulla</button>
+                    <button type="submit" class="btn">
+                        <span id="importSpinner" class="loading hidden"></span>
+                        Importa Progetti
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Project Details Modal -->
+    <div id="projectDetailsModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 id="projectDetailsTitle">Dettagli Progetto</h3>
+                <span class="close" onclick="closeModal('projectDetailsModal')">&times;</span>
+            </div>
+            <div id="projectDetailsAlert"></div>
+            
+            <!-- Project Info -->
+            <div class="card" style="margin-bottom: 20px;">
+                <h4>Informazioni Generali</h4>
+                <div id="projectInfo" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Geometry Calculator -->
+            <div class="card" style="margin-bottom: 20px;">
+                <h4>🔧 Calcolo Layout Geometrico</h4>
+                <form id="geometryForm" style="margin-top: 15px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div class="form-group">
+                            <label for="geomSuperficie">Superficie (m²) *</label>
+                            <input type="number" id="geomSuperficie" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="geomTilt">Inclinazione (°) *</label>
+                            <input type="number" id="geomTilt" min="0" max="90" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="geomMargine">Margine (m)</label>
+                            <input type="number" id="geomMargine" step="0.1" value="1.0">
+                        </div>
+                        <div class="form-group">
+                            <label for="geomOrientamento">Orientamento</label>
+                            <select id="geomOrientamento">
+                                <option value="optimal">Ottimale (Automatico)</option>
+                                <option value="sud">Sud</option>
+                                <option value="est_ovest">Est-Ovest</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <h5>Parametri Modulo Fotovoltaico</h5>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 10px;">
+                            <div class="form-group">
+                                <label for="geomModuloPotenza">Potenza (Wp)</label>
+                                <input type="number" id="geomModuloPotenza" value="495">
+                            </div>
+                            <div class="form-group">
+                                <label for="geomModuloLunghezza">Lunghezza (mm)</label>
+                                <input type="number" id="geomModuloLunghezza" value="2278">
+                            </div>
+                            <div class="form-group">
+                                <label for="geomModuloLarghezza">Larghezza (mm)</label>
+                                <input type="number" id="geomModuloLarghezza" value="1134">
+                            </div>
+                            <div class="form-group">
+                                <label for="geomModuloNome">Nome Modulo</label>
+                                <input type="text" id="geomModuloNome" value="LONGI LR7-54HVH-495M">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button type="submit" class="btn">
+                            <span id="geometrySpinner" class="loading hidden"></span>
+                            🧮 Calcola Layout
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="calculatePVGIS()" id="calculatePvgisBtn" style="display: none;">
+                            <span id="pvgisSpinner" class="loading hidden"></span>
+                            ☀️ Calcola Produzione PVGIS
+                        </button>
+                        <button type="button" class="btn btn-info" onclick="calculateBESS()" id="calculateBessBtn" style="display: none;">
+                            <span id="bessSpinner" class="loading hidden"></span>
+                            🔋 Calcola BESS
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="calculateEconomics()" id="calculateEconomicsBtn" style="display: none;">
+                            <span id="economicsSpinner" class="loading hidden"></span>
+                            💰 Analisi Economica
+                        </button>
+                        <button type="button" class="btn btn-warning" onclick="saveGeometryToProject()" id="saveGeometryBtn" style="display: none;">
+                            💾 Salva nel Progetto
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="generateReport()" id="generateReportBtn" style="display: none;">
+                            <span id="reportSpinner" class="loading hidden"></span>
+                            📄 Genera Report PDF
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Geometry Results -->
+            <div id="geometryResults" class="card" style="display: none; margin-bottom: 20px;">
+                <h4>📊 Risultati Calcolo</h4>
+                <div id="geometryResultsContent">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- PVGIS Results -->
+            <div id="pvgisResults" class="card" style="display: none; margin-bottom: 20px;">
+                <h4>☀️ Risultati Produzione PVGIS</h4>
+                <div id="pvgisResultsContent">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- BESS Results -->
+            <div id="bessResults" class="card" style="display: none; margin-bottom: 20px;">
+                <h4>🔋 Risultati Calcolo BESS</h4>
+                <div id="bessResultsContent">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Economic Analysis Results -->
+            <div id="economicsResults" class="card" style="display: none; margin-bottom: 20px;">
+                <h4>💰 Risultati Analisi Economica</h4>
+                <div id="economicsResultsContent">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('projectDetailsModal')">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Stato globale dell'applicazione
+        let currentUser = null;
+        let allProjects = [];
+        let allUsers = [];
+        let selectedProjects = new Set();
+
+        // Inizializzazione
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Login form
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            
+            // Create project form
+            document.getElementById('createProjectForm').addEventListener('submit', handleCreateProject);
+            
+            // Bulk import form
+            document.getElementById('bulkImportForm').addEventListener('submit', handleBulkImport);
+            
+            // Modal close on outside click
+            window.addEventListener('click', function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
+                }
+            });
+        }
+
+        // Autenticazione
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch('/api/auth/me');
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    showDashboard();
+                } else {
+                    showLogin();
+                }
+            } catch (error) {
+                console.error('Errore verifica autenticazione:', error);
+                showLogin();
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const spinner = document.getElementById('loginSpinner');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            spinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+            
+            try {
+                const formData = new FormData(e.target);
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: formData.get('username'),
+                        password: formData.get('password')
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentUser = data.user;
+                    showAlert('loginAlert', 'Login effettuato con successo!', 'success');
+                    setTimeout(() => {
+                        showDashboard();
+                    }, 1000);
+                } else {
+                    showAlert('loginAlert', data.error || 'Errore durante il login', 'error');
+                }
+            } catch (error) {
+                showAlert('loginAlert', 'Errore di connessione', 'error');
+            } finally {
+                spinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                currentUser = null;
+                showLogin();
+            } catch (error) {
+                console.error('Errore logout:', error);
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('dashboardSection').classList.remove('active');
+            document.getElementById('userInfo').style.display = 'none';
+        }
+
+        function showDashboard() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('dashboardSection').classList.add('active');
+            document.getElementById('userInfo').style.display = 'flex';
+            
+            // Aggiorna badge utente
+            const userBadge = document.getElementById('userBadge');
+            userBadge.textContent = `${currentUser.username} (${currentUser.role})`;
+            userBadge.className = `user-badge ${currentUser.role === 'admin' ? 'admin-badge' : ''}`;
+            
+            // Mostra/nascondi elementi admin
+            if (currentUser.role === 'admin') {
+                document.getElementById('bulkImportBtn').style.display = 'inline-block';
+                document.getElementById('bulkActions').style.display = 'flex';
+                document.getElementById('adminCheckboxHeader').style.display = 'table-cell';
+                loadUsers();
+            }
+            
+            // Carica dati
+            loadProjects();
+        }
+
+        // Gestione progetti
+        async function loadProjects() {
+            try {
+                const response = await fetch('/api/projects');
+                if (response.ok) {
+                    const data = await response.json();
+                    allProjects = data.projects;
+                    updateProjectsTable();
+                    updateStats();
+                } else {
+                    showAlert('dashboardAlert', 'Errore caricamento progetti', 'error');
+                }
+            } catch (error) {
+                console.error('Errore caricamento progetti:', error);
+                showAlert('dashboardAlert', 'Errore di connessione', 'error');
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/users');
+                if (response.ok) {
+                    const data = await response.json();
+                    allUsers = data;
+                    updateUserSelect();
+                } else {
+                    console.error('Errore caricamento utenti');
+                }
+            } catch (error) {
+                console.error('Errore caricamento utenti:', error);
+            }
+        }
+
+        function updateUserSelect() {
+            const select = document.getElementById('bulkAssignUser');
+            select.innerHTML = '<option value="">Seleziona utente...</option>';
+            
+            allUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.id;
+                option.textContent = `${user.username} (${user.role})`;
+                select.appendChild(option);
+            });
+            
+            if (currentUser.role === 'admin') {
+                select.style.display = 'inline-block';
+                document.querySelector('.btn-success').style.display = 'inline-block';
+            }
+        }
+
+        function updateProjectsTable() {
+            const tbody = document.getElementById('projectsTableBody');
+            
+            if (allProjects.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #718096;">
+                            Nessun progetto trovato
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = allProjects.map(project => {
+                const ownerName = allUsers.find(u => u.id === project.owner_id)?.username || 'Non assegnato';
+                const lastUpdate = project.updated_at ? new Date(project.updated_at).toLocaleDateString('it-IT') : '-';
+                
+                return `
+                    <tr>
+                        ${currentUser.role === 'admin' ? `
+                            <td class="checkbox-column">
+                                <input type="checkbox" class="project-checkbox" value="${project.id}" 
+                                       onchange="toggleProjectSelection(${project.id})">
+                            </td>
+                        ` : ''}
+                        <td><strong>${project.name}</strong></td>
+                        <td>${project.address || '-'}</td>
+                        <td><span class="status-badge status-${project.status.toLowerCase().replace(' ', '-')}">${project.status}</span></td>
+                        <td>${ownerName}</td>
+                        <td>${lastUpdate}</td>
+                        <td class="actions-column">
+                            <button class="btn btn-sm" onclick="viewProject(${project.id})">Visualizza</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('totalProjects').textContent = allProjects.length;
+            document.getElementById('activeProjects').textContent = allProjects.filter(p => p.status === 'In Analisi').length;
+            document.getElementById('completedProjects').textContent = allProjects.filter(p => p.status === 'Completato').length;
+            
+            const totalPower = allProjects.reduce((sum, p) => sum + (p.potenza_installabile_kwp || 0), 0);
+            document.getElementById('totalPower').textContent = totalPower.toFixed(1);
+        }
+
+        function filterProjects() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            if (statusFilter) {
+                const filteredProjects = allProjects.filter(p => p.status === statusFilter);
+                // Temporaneamente aggiorna la tabella con i progetti filtrati
+                const originalProjects = allProjects;
+                allProjects = filteredProjects;
+                updateProjectsTable();
+                allProjects = originalProjects;
+            } else {
+                updateProjectsTable();
+            }
+        }
+
+        function refreshProjects() {
+            loadProjects();
+        }
+
+        // Modal management
+        function showCreateProjectModal() {
+            document.getElementById('createProjectModal').style.display = 'block';
+        }
+
+        function showBulkImportModal() {
+            document.getElementById('bulkImportModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        async function handleCreateProject(e) {
+            e.preventDefault();
+            
+            try {
+                const formData = new FormData(e.target);
+                const projectData = Object.fromEntries(formData.entries());
+                
+                const response = await fetch('/api/projects', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(projectData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('createProjectAlert', 'Progetto creato con successo!', 'success');
+                    setTimeout(() => {
+                        closeModal('createProjectModal');
+                        loadProjects();
+                        e.target.reset();
+                    }, 1500);
+                } else {
+                    showAlert('createProjectAlert', data.error || 'Errore durante la creazione', 'error');
+                }
+            } catch (error) {
+                showAlert('createProjectAlert', 'Errore di connessione', 'error');
+            }
+        }
+
+        async function handleBulkImport(e) {
+            e.preventDefault();
+            
+            const spinner = document.getElementById('importSpinner');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            spinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+            
+            try {
+                const formData = new FormData();
+                const fileInput = document.getElementById('importFile');
+                formData.append('file', fileInput.files[0]);
+                
+                const response = await fetch('/api/projects/bulk-import', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('bulkImportAlert', `Import completato! ${data.projects_created} progetti creati.`, 'success');
+                    setTimeout(() => {
+                        closeModal('bulkImportModal');
+                        loadProjects();
+                        e.target.reset();
+                    }, 2000);
+                } else {
+                    showAlert('bulkImportAlert', data.error || 'Errore durante l\'import', 'error');
+                }
+            } catch (error) {
+                showAlert('bulkImportAlert', 'Errore di connessione', 'error');
+            } finally {
+                spinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Bulk operations
+        function toggleProjectSelection(projectId) {
+            if (selectedProjects.has(projectId)) {
+                selectedProjects.delete(projectId);
+            } else {
+                selectedProjects.add(projectId);
+            }
+            updateBulkActionsVisibility();
+        }
+
+        function toggleSelectAll() {
+            const checkbox = document.getElementById('selectAllCheckbox');
+            const projectCheckboxes = document.querySelectorAll('.project-checkbox');
+            
+            projectCheckboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+                const projectId = parseInt(cb.value);
+                if (checkbox.checked) {
+                    selectedProjects.add(projectId);
+                } else {
+                    selectedProjects.delete(projectId);
+                }
+            });
+            
+            updateBulkActionsVisibility();
+        }
+
+        function selectAllProjects() {
+            const projectCheckboxes = document.querySelectorAll('.project-checkbox');
+            projectCheckboxes.forEach(cb => {
+                cb.checked = true;
+                selectedProjects.add(parseInt(cb.value));
+            });
+            document.getElementById('selectAllCheckbox').checked = true;
+            updateBulkActionsVisibility();
+        }
+
+        function deselectAllProjects() {
+            const projectCheckboxes = document.querySelectorAll('.project-checkbox');
+            projectCheckboxes.forEach(cb => {
+                cb.checked = false;
+            });
+            document.getElementById('selectAllCheckbox').checked = false;
+            selectedProjects.clear();
+            updateBulkActionsVisibility();
+        }
+
+        function updateBulkActionsVisibility() {
+            const bulkActions = document.getElementById('bulkActions');
+            if (currentUser.role === 'admin') {
+                bulkActions.style.display = selectedProjects.size > 0 ? 'flex' : 'none';
+            }
+        }
+
+        async function bulkAssignProjects() {
+            const userId = document.getElementById('bulkAssignUser').value;
+            if (!userId || selectedProjects.size === 0) {
+                alert('Seleziona un utente e almeno un progetto');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/projects/bulk-assign', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        project_ids: Array.from(selectedProjects),
+                        user_id: parseInt(userId)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(data.message);
+                    deselectAllProjects();
+                    loadProjects();
+                } else {
+                    alert(data.error || 'Errore durante l\'assegnazione');
+                }
+            } catch (error) {
+                alert('Errore di connessione');
+            }
+        }
+
+        function viewProject(projectId) {
+            fetch(`/api/projects/${projectId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const project = data.project;
+                        
+                        // Popola il titolo
+                        document.getElementById('projectDetailsTitle').textContent = `Progetto: ${project.name}`;
+                        
+                        // Popola le informazioni generali
+                        const projectInfo = document.getElementById('projectInfo');
+                        projectInfo.innerHTML = `
+                            <div><strong>Nome:</strong> ${project.name}</div>
+                            <div><strong>Indirizzo:</strong> ${project.address || 'Non specificato'}</div>
+                            <div><strong>Superficie:</strong> ${project.superficie_lorda_mq || 'Non specificata'} m²</div>
+                            <div><strong>Stato:</strong> <span class="status-badge status-${project.status.toLowerCase().replace(' ', '-')}">${project.status}</span></div>
+                            <div><strong>Assegnato a:</strong> ${project.assigned_to_name || 'Non assegnato'}</div>
+                            <div><strong>Creato il:</strong> ${new Date(project.created_at).toLocaleDateString('it-IT')}</div>
+                            <div><strong>Potenza Installabile:</strong> ${project.potenza_installabile_kwp || 'Non calcolata'} kWp</div>
+                            <div><strong>Orientamento:</strong> ${project.orientation_type || 'Non definito'}</div>
+                            <div><strong>Note:</strong> ${project.notes || 'Nessuna nota'}</div>
+                        `;
+                        
+                        // Pre-popola i campi del form geometrico
+                        document.getElementById('geomSuperficie').value = project.superficie_lorda_mq || '';
+                        document.getElementById('geomTilt').value = project.tilt_degrees || 30;
+                        document.getElementById('geomMargine').value = project.margine_metri || 1.0;
+                        document.getElementById('geomOrientamento').value = project.orientation_type || 'optimal';
+                        
+                        if (project.modulo_potenza_wp) {
+                            document.getElementById('geomModuloPotenza').value = project.modulo_potenza_wp;
+                            document.getElementById('geomModuloLunghezza').value = project.modulo_lunghezza_mm || 2278;
+                            document.getElementById('geomModuloLarghezza').value = project.modulo_larghezza_mm || 1134;
+                        }
+                        
+                        // Salva l'ID del progetto corrente
+                        window.currentProjectId = projectId;
+                        
+                        // Mostra il modal
+                        document.getElementById('projectDetailsModal').style.display = 'block';
+                        
+                        // Nascondi risultati precedenti
+                  // Nascondi tutti i pulsanti e risultati
+            document.getElementById('saveGeometryBtn').style.display = 'none';
+            document.getElementById('calculatePvgisBtn').style.display = 'none';
+            document.getElementById('calculateBessBtn').style.display = 'none';
+            document.getElementById('calculateEconomicsBtn').style.display = 'none';
+            document.getElementById('geometryResults').style.display = 'none';
+            document.getElementById('pvgisResults').style.display = 'none';
+            document.getElementById('bessResults').style.display = 'none';
+            document.getElementById('economicsResults').style.display = 'none';lay = 'none';
+                        
+                    } else {
+                        showAlert('projectDetailsAlert', data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                    alert('Errore nel caricamento del progetto');
+                });
+        }
+
+        // Geometry calculation functions
+        async function handleGeometryCalculation(e) {
+            e.preventDefault();
+            
+            const spinner = document.getElementById('geometrySpinner');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            spinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+            
+            try {
+                const formData = new FormData(e.target);
+                const geometryData = {
+                    superficie_mq: parseFloat(document.getElementById('geomSuperficie').value),
+                    tilt_degrees: parseFloat(document.getElementById('geomTilt').value),
+                    margine_metri: parseFloat(document.getElementById('geomMargine').value),
+                    orientation_type: document.getElementById('geomOrientamento').value
+                };
+                
+                // Aggiungi parametri modulo se specificati
+                const moduloPotenza = document.getElementById('geomModuloPotenza').value;
+                if (moduloPotenza) {
+                    geometryData.modulo_params = {
+                        potenza_wp: parseInt(moduloPotenza),
+                        lunghezza_mm: parseInt(document.getElementById('geomModuloLunghezza').value),
+                        larghezza_mm: parseInt(document.getElementById('geomModuloLarghezza').value),
+                        nome: document.getElementById('geomModuloNome').value
+                    };
+                }
+                
+                const response = await fetch('/api/geometry/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(geometryData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayGeometryResults(data.calculation_result);
+                    document.getElementById('saveGeometryBtn').style.display = 'inline-block';
+                    document.getElementById('calculatePvgisBtn').style.display = 'inline-block';
+                    document.getElementById('calculateBessBtn').style.display = 'inline-block';
+                    document.getElementById('calculateEconomicsBtn').style.display = 'inline-block';
+                    window.lastGeometryResult = data.calculation_result;
+                    showAlert('projectDetailsAlert', 'Calcolo geometrico completato! Ora puoi calcolare la produzione PVGIS.', 'success');
+                } else {
+                    showAlert('projectDetailsAlert', data.error || 'Errore durante il calcolo', 'error');
+                }
+            } catch (error) {
+                console.error('Errore calcolo geometria:', error);
+                showAlert('projectDetailsAlert', 'Errore di connessione', 'error');
+            } finally {
+                spinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        }
+
+        function displayGeometryResults(result) {
+            const resultsDiv = document.getElementById('geometryResultsContent');
+            
+            if (result.layout_ottimale) {
+                // Risultato da calcolo ottimale
+                const optimal = result.layout_ottimale;
+                const alternative = result.layout_alternativo;
+                const comparison = result.confronto;
+                
+                resultsDiv.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div class="card" style="background: #e6fffa; border-left: 4px solid #38b2ac;">
+                            <h5>🏆 Layout Ottimale: ${optimal.orientamento.toUpperCase()}</h5>
+                            ${formatLayoutResults(optimal)}
+                        </div>
+                        <div class="card" style="background: #f7fafc; border-left: 4px solid #a0aec0;">
+                            <h5>📊 Layout Alternativo: ${alternative.orientamento.toUpperCase()}</h5>
+                            ${formatLayoutResults(alternative)}
+                        </div>
+                    </div>
+                    <div class="card" style="background: #fff5f5; border-left: 4px solid #f56565;">
+                        <h5>⚖️ Confronto</h5>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div><strong>Potenza Sud:</strong> ${comparison.potenza_sud_kwp} kWp</div>
+                            <div><strong>Potenza Est-Ovest:</strong> ${comparison.potenza_est_ovest_kwp} kWp</div>
+                            <div><strong>Differenza:</strong> ${comparison.differenza_kwp} kWp</div>
+                            <div><strong>Migliore:</strong> ${comparison.migliore.toUpperCase()}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Risultato da calcolo specifico
+                resultsDiv.innerHTML = `
+                    <div class="card" style="background: #e6fffa; border-left: 4px solid #38b2ac;">
+                        <h5>📊 Risultati Layout ${result.orientamento.toUpperCase()}</h5>
+                        ${formatLayoutResults(result)}
+                    </div>
+                `;
+            }
+            
+            document.getElementById('geometryResults').style.display = 'block';
+        }
+
+        function formatLayoutResults(layout) {
+            let html = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                    <div><strong>Potenza Installabile:</strong> ${layout.potenza_installabile_kwp} kWp</div>
+                    <div><strong>Numero Moduli:</strong> ${layout.numero_moduli}</div>
+                    <div><strong>Fattore Riempimento:</strong> ${(layout.fattore_riempimento * 100).toFixed(1)}%</div>
+                    <div><strong>Superficie Occupata:</strong> ${layout.superficie_occupata_mq} m²</div>
+            `;
+            
+            if (layout.orientamento === 'sud') {
+                html += `
+                    <div><strong>Numero File:</strong> ${layout.numero_file}</div>
+                    <div><strong>Moduli per Fila:</strong> ${layout.moduli_per_fila}</div>
+                    <div><strong>Distanza tra File:</strong> ${layout.distanza_tra_file_m} m</div>
+                    <div><strong>Azimuth:</strong> ${layout.azimuth_degrees}° (Sud)</div>
+                `;
+            } else if (layout.orientamento === 'est_ovest') {
+                html += `
+                    <div><strong>Numero "V":</strong> ${layout.numero_v}</div>
+                    <div><strong>Moduli per "V":</strong> ${layout.moduli_per_v}</div>
+                    <div><strong>Moduli Est:</strong> ${layout.numero_moduli_est}</div>
+                    <div><strong>Moduli Ovest:</strong> ${layout.numero_moduli_ovest}</div>
+                    <div><strong>Larghezza "V":</strong> ${layout.larghezza_v_m} m</div>
+                    <div><strong>Altezza "V":</strong> ${layout.altezza_v_m} m</div>
+                `;
+            }
+            
+            html += `
+                    <div><strong>Inclinazione:</strong> ${layout.tilt_degrees}°</div>
+                    <div><strong>Modulo:</strong> ${layout.modulo_utilizzato}</div>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        async function saveGeometryToProject() {
+            if (!window.currentProjectId || !window.lastGeometryResult) {
+                alert('Nessun risultato da salvare');
+                return;
+            }
+            
+            try {
+                const geometryData = {
+                    superficie_mq: parseFloat(document.getElementById('geomSuperficie').value),
+                    tilt_degrees: parseFloat(document.getElementById('geomTilt').value),
+                    margine_metri: parseFloat(document.getElementById('geomMargine').value),
+                    orientation_type: document.getElementById('geomOrientamento').value,
+                    save_to_project: true
+                };
+                
+                // Aggiungi parametri modulo se specificati
+                const moduloPotenza = document.getElementById('geomModuloPotenza').value;
+                if (moduloPotenza) {
+                    geometryData.modulo_params = {
+                        potenza_wp: parseInt(moduloPotenza),
+                        lunghezza_mm: parseInt(document.getElementById('geomModuloLunghezza').value),
+                        larghezza_mm: parseInt(document.getElementById('geomModuloLarghezza').value),
+                        nome: document.getElementById('geomModuloNome').value
+                    };
+                }
+                
+                const response = await fetch(`/api/projects/${window.currentProjectId}/calculate-geometry`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(geometryData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('projectDetailsAlert', 'Risultati salvati nel progetto!', 'success');
+                    document.getElementById('saveGeometryBtn').style.display = 'none';
+                    
+                    // Aggiorna la lista progetti
+                    setTimeout(() => {
+                        loadProjects();
+                    }, 1000);
+                } else {
+                    showAlert('projectDetailsAlert', data.error || 'Errore durante il salvataggio', 'error');
+                }
+            } catch (error) {
+                console.error('Errore salvataggio:', error);
+                showAlert('projectDetailsAlert', 'Errore di connessione', 'error');
+            }
+        }
+
+        // Funzioni PVGIS
+        async function calculatePVGIS() {
+            if (!window.lastGeometryResult) {
+                showAlert('projectDetailsAlert', 'Calcola prima il layout geometrico', 'error');
+                return;
+            }
+
+            const spinner = document.getElementById('pvgisSpinner');
+            const btn = document.getElementById('calculatePvgisBtn');
+            
+            try {
+                spinner.classList.remove('hidden');
+                btn.disabled = true;
+
+                // Ottieni parametri dal form
+                const superficie = parseFloat(document.getElementById('geomSuperficie').value);
+                const tilt = parseFloat(document.getElementById('geomTilt').value);
+                const orientamento = document.getElementById('geomOrientamento').value;
+                
+                // Usa coordinate di default per Milano (in produzione dovrebbero essere estratte dall'indirizzo)
+                const latitude = 45.4642;
+                const longitude = 9.1900;
+                
+                // Usa la potenza calcolata dal layout geometrico
+                const peak_power_kwp = window.lastGeometryResult.potenza_installabile_kwp;
+
+                let pvgisData;
+
+                if (orientamento === 'est_ovest') {
+                    // Calcola produzione Est-Ovest
+                    const response = await fetch('/api/pvgis/production-dual', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            latitude: latitude,
+                            longitude: longitude,
+                            peak_power_kwp: peak_power_kwp,
+                            tilt: tilt
+                        })
+                    });
+
+                    pvgisData = await response.json();
+                } else {
+                    // Calcola produzione Sud
+                    const azimuth = orientamento === 'sud' ? 180 : 180; // Default Sud
+                    
+                    const response = await fetch('/api/pvgis/production', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            latitude: latitude,
+                            longitude: longitude,
+                            peak_power_kwp: peak_power_kwp,
+                            tilt: tilt,
+                            azimuth: azimuth
+                        })
+                    });
+
+                    pvgisData = await response.json();
+                }
+
+                if (pvgisData.success) {
+                    displayPVGISResults(pvgisData.data);
+                    window.lastPVGISResult = pvgisData.data;
+                    
+                    // Mostra il pulsante salva
+                    document.getElementById('saveGeometryBtn').style.display = 'inline-block';
+                    showAlert('projectDetailsAlert', 'Calcolo PVGIS completato!', 'success');
+                } else {
+                    showAlert('projectDetailsAlert', pvgisData.error || 'Errore calcolo PVGIS', 'error');
+                }
+
+            } catch (error) {
+                console.error('Errore PVGIS:', error);
+                showAlert('projectDetailsAlert', 'Errore di connessione PVGIS', 'error');
+            } finally {
+                spinner.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        function displayPVGISResults(data) {
+            const container = document.getElementById('pvgisResultsContent');
+            const resultsDiv = document.getElementById('pvgisResults');
+            
+            let html = '';
+
+            if (data.orientation === 'est_ovest') {
+                // Risultati Est-Ovest
+                html = `
+                    <div class="card" style="background: #fff3cd; border-left: 4px solid #ffc107;">
+                        <h5>☀️ Risultati Produzione EST-OVEST</h5>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                            <div><strong>Produzione Annuale Totale:</strong> ${data.annual_production_kwh.toLocaleString()} kWh</div>
+                            <div><strong>Produzione Est:</strong> ${data.annual_production_east_kwh.toLocaleString()} kWh</div>
+                            <div><strong>Produzione Ovest:</strong> ${data.annual_production_west_kwh.toLocaleString()} kWh</div>
+                            <div><strong>Produzione Specifica:</strong> ${Math.round(data.specific_production_kwh_kwp)} kWh/kWp</div>
+                            <div><strong>Split Ratio:</strong> ${Math.round(data.split_ratio * 100)}% Est / ${Math.round((1-data.split_ratio) * 100)}% Ovest</div>
+                            <div><strong>Coordinate:</strong> ${data.metadata.latitude.toFixed(4)}°N, ${data.metadata.longitude.toFixed(4)}°E</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Risultati Sud
+                html = `
+                    <div class="card" style="background: #e6fffa; border-left: 4px solid #38b2ac;">
+                        <h5>☀️ Risultati Produzione SUD</h5>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                            <div><strong>Produzione Annuale:</strong> ${data.annual_production_kwh.toLocaleString()} kWh</div>
+                            <div><strong>Produzione Specifica:</strong> ${Math.round(data.specific_production_kwh_kwp)} kWh/kWp</div>
+                            <div><strong>Performance Ratio:</strong> ${(data.performance_ratio * 100).toFixed(1)}%</div>
+                            <div><strong>Irraggiamento Annuale:</strong> ${Math.round(data.annual_irradiation_kwh_m2)} kWh/m²</div>
+                            <div><strong>Azimuth:</strong> ${data.metadata.azimuth}° (Sud)</div>
+                            <div><strong>Coordinate:</strong> ${data.metadata.latitude.toFixed(4)}°N, ${data.metadata.longitude.toFixed(4)}°E</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Aggiungi dati mensili se disponibili
+            if (data.monthly_data && data.monthly_data.length > 0) {
+                html += `
+                    <div class="card" style="margin-top: 15px; background: #f8f9fa;">
+                        <h5>📊 Produzione Mensile</h5>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 15px; font-size: 14px;">
+                `;
+                
+                const months = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+                
+                data.monthly_data.forEach((month, index) => {
+                    html += `
+                        <div style="text-align: center; padding: 8px; background: white; border-radius: 4px;">
+                            <div style="font-weight: bold; color: #2d3748;">${months[index]}</div>
+                            <div style="color: #4a5568;">${Math.round(month.production_kwh).toLocaleString()} kWh</div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Aggiungi metadati
+            html += `
+                <div class="card" style="margin-top: 15px; background: #f7fafc; font-size: 12px; color: #4a5568;">
+                    <strong>Fonte Dati:</strong> ${data.metadata.data_source}<br>
+                    <strong>Database Radiazione:</strong> ${data.metadata.radiation_db}<br>
+                    <strong>Database Meteo:</strong> ${data.metadata.meteo_db}<br>
+                    <strong>Periodo Dati:</strong> ${data.metadata.year_min}-${data.metadata.year_max}<br>
+                    <strong>Perdite Sistema:</strong> ${data.metadata.loss_percent}%<br>
+                    <strong>Elevazione:</strong> ${data.metadata.elevation} m s.l.m.
+                </div>
+            `;
+
+            container.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        // Funzioni BESS
+        async function calculateBESS() {
+            const btn = document.querySelector('#calculateBessBtn');
+            const spinner = document.getElementById('bessSpinner');
+            
+            try {
+                btn.disabled = true;
+                spinner.classList.remove('hidden');
+                
+                // Verifica che PVGIS sia stato calcolato
+                if (!window.lastPVGISResult) {
+                    showAlert('projectDetailsAlert', 'Calcola prima la produzione PVGIS', 'error');
+                    return;
+                }
+                
+                // Estrae dati produzione mensile da PVGIS
+                const pvgisData = window.lastPVGISResult;
+                let pv_production_monthly;
+                
+                if (pvgisData.monthly_data) {
+                    pv_production_monthly = pvgisData.monthly_data.map(month => month.production_kwh);
+                } else {
+                    showAlert('projectDetailsAlert', 'Dati PVGIS non validi per calcolo BESS', 'error');
+                    return;
+                }
+                
+                // Parametri di input per BESS
+                const annual_consumption_kwh = parseFloat(prompt('Inserisci il consumo annuale in kWh:', '200000')) || 200000;
+                const electricity_price = parseFloat(prompt('Prezzo energia elettrica (€/kWh):', '0.25')) || 0.25;
+                const feed_in_tariff = parseFloat(prompt('Tariffa immissione (€/kWh):', '0.05')) || 0.05;
+                const wacc = parseFloat(prompt('WACC (%):', '5')) / 100 || 0.05;
+                
+                // Parametri BESS avanzati (opzionali)
+                const capex_per_kwh = parseFloat(prompt('CAPEX batterie (€/kWh):', '500')) || 500;
+                
+                const response = await fetch('/api/bess/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        pv_production_monthly: pv_production_monthly,
+                        annual_consumption_kwh: annual_consumption_kwh,
+                        electricity_price: electricity_price,
+                        feed_in_tariff: feed_in_tariff,
+                        wacc: wacc,
+                        capex_per_kwh: capex_per_kwh
+                    })
+                });
+
+                const bessData = await response.json();
+
+                if (bessData.success) {
+                    displayBESSResults(bessData.results);
+                    window.lastBESSResult = bessData.results;
+                    showAlert('projectDetailsAlert', 'Calcolo BESS completato!', 'success');
+                } else {
+                    showAlert('projectDetailsAlert', bessData.error || 'Errore calcolo BESS', 'error');
+                }
+
+            } catch (error) {
+                console.error('Errore BESS:', error);
+                showAlert('projectDetailsAlert', 'Errore di connessione BESS', 'error');
+            } finally {
+                spinner.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        function displayBESSResults(data) {
+            const container = document.getElementById('bessResultsContent');
+            const resultsDiv = document.getElementById('bessResults');
+            
+            const html = `
+                <div class="card" style="background: #f0f8ff; border-left: 4px solid #4299e1;">
+                    <h5>🔋 Dimensionamento Ottimale BESS</h5>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div><strong>Capacità Ottimale:</strong> ${data.optimal_capacity_kwh.toLocaleString()} kWh</div>
+                        <div><strong>Potenza Ottimale:</strong> ${data.optimal_power_kw.toLocaleString()} kW</div>
+                        <div><strong>Aumento Autoconsumo:</strong> ${data.annual_self_consumption_increase.toLocaleString()} kWh/anno</div>
+                        <div><strong>Riduzione Prelievo Rete:</strong> ${data.annual_grid_reduction.toLocaleString()} kWh/anno</div>
+                    </div>
+                </div>
+
+                <div class="card" style="background: #f0fff4; border-left: 4px solid #48bb78; margin-top: 15px;">
+                    <h5>💰 Analisi Economica</h5>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div><strong>CAPEX Totale:</strong> €${data.capex_total.toLocaleString()}</div>
+                        <div><strong>OPEX Annuale:</strong> €${data.opex_annual.toLocaleString()}/anno</div>
+                        <div><strong>Risparmio Annuale:</strong> €${data.savings_annual.toLocaleString()}/anno</div>
+                        <div><strong>Payback Period:</strong> ${data.payback_years} anni</div>
+                        <div><strong>NPV (20 anni):</strong> €${data.npv_20_years.toLocaleString()}</div>
+                        <div><strong>IRR:</strong> ${data.irr_percent}%</div>
+                    </div>
+                </div>
+
+                <div class="card" style="background: #fffaf0; border-left: 4px solid #ed8936; margin-top: 15px;">
+                    <h5>🔧 Metriche Tecniche</h5>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div><strong>Cicli Giornalieri:</strong> ${data.daily_cycles}</div>
+                        <div><strong>Cicli Totali (20 anni):</strong> ${data.total_cycles_20_years.toLocaleString()}</div>
+                        <div><strong>Ritenzione Capacità:</strong> ${data.capacity_retention_20_years}% (20 anni)</div>
+                        <div><strong>LCOE Reduction:</strong> €${data.lcoe_reduction}/MWh</div>
+                    </div>
+                </div>
+
+                <div class="card" style="background: #f7fafc; border-left: 4px solid #718096; margin-top: 15px;">
+                    <h5>📊 Breakdown Risparmi</h5>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div><strong>Costo Rete Evitato:</strong> €${data.avoided_grid_cost.toLocaleString()}/anno</div>
+                        <div><strong>Incentivi Aggiuntivi:</strong> €${data.incentives_annual.toLocaleString()}/anno</div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        // Funzione per calcolare l'analisi economica
+        async function calculateEconomics() {
+            if (!window.currentProjectId) {
+                showAlert('projectDetailsAlert', 'Nessun progetto selezionato', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('calculateEconomicsBtn');
+            const spinner = document.getElementById('economicsSpinner');
+            
+            btn.disabled = true;
+            spinner.classList.remove('hidden');
+
+            try {
+                // Prompt per parametri economici
+                const wacc = parseFloat(prompt('WACC (Weighted Average Cost of Capital) - Costo medio ponderato del capitale (%):', '5.0')) / 100;
+                if (isNaN(wacc) || wacc < 0) return;
+
+                const electricityPrice = parseFloat(prompt('Prezzo energia elettrica (€/kWh):', '0.25'));
+                if (isNaN(electricityPrice) || electricityPrice < 0) return;
+
+                const feedInTariff = parseFloat(prompt('Tariffa immissione in rete (€/kWh):', '0.05'));
+                if (isNaN(feedInTariff) || feedInTariff < 0) return;
+
+                const consumptionAnnual = parseFloat(prompt('Consumo annuale stimato (kWh):', '200000'));
+                if (isNaN(consumptionAnnual) || consumptionAnnual < 0) return;
+
+                const pvCapex = parseFloat(prompt('CAPEX fotovoltaico (€/kWp):', '1200'));
+                if (isNaN(pvCapex) || pvCapex < 0) return;
+
+                const bessCapex = parseFloat(prompt('CAPEX BESS (€/kWh):', '500'));
+                if (isNaN(bessCapex) || bessCapex < 0) return;
+
+                const response = await fetch(`/api/projects/${window.currentProjectId}/calculate-economics`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        wacc: wacc,
+                        electricity_price_f2: electricityPrice,
+                        feed_in_tariff: feedInTariff,
+                        consumption_annual_kwh: consumptionAnnual,
+                        pv_capex_per_kwp: pvCapex,
+                        bess_capex_per_kwh: bessCapex
+                    })
+                });
+
+                const economicsData = await response.json();
+
+                if (economicsData.success) {
+                    displayEconomicsResults(economicsData.results);
+                    window.lastEconomicsResult = economicsData.results;
+                    showAlert('projectDetailsAlert', 'Analisi economica completata!', 'success');
+                } else {
+                    showAlert('projectDetailsAlert', economicsData.error || 'Errore analisi economica', 'error');
+                }
+
+            } catch (error) {
+                console.error('Errore analisi economica:', error);
+                showAlert('projectDetailsAlert', 'Errore di connessione analisi economica', 'error');
+            } finally {
+                spinner.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        function displayEconomicsResults(data) {
+            const container = document.getElementById('economicsResultsContent');
+            const resultsDiv = document.getElementById('economicsResults');
+            
+            const html = `
+                <!-- KPI Summary -->
+                <div class="card" style="background: #e6fffa; border-left: 4px solid #38b2ac; margin-bottom: 15px;">
+                    <h5>📊 KPI Riassuntivi</h5>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div><strong>Investimento Totale:</strong> €${data.kpi_summary.total_investment.toLocaleString()}</div>
+                        <div><strong>Produzione Annuale:</strong> ${data.kpi_summary.total_annual_production.toLocaleString()} kWh</div>
+                        <div><strong>Risparmi Annuali:</strong> €${data.kpi_summary.total_annual_savings.toLocaleString()}</div>
+                        <div><strong>LCOE:</strong> €${data.kpi_summary.lcoe.toFixed(3)}/kWh</div>
+                    </div>
+                </div>
+
+                <!-- Scenario Comparison -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <!-- FV Solo -->
+                    <div class="card" style="background: #fff5f5; border-left: 4px solid #f56565;">
+                        <h5>☀️ Scenario FV Solo</h5>
+                        <div style="margin-top: 15px;">
+                            <div><strong>NPV (20 anni):</strong> €${data.pv_only.npv.toLocaleString()}</div>
+                            <div><strong>IRR:</strong> ${(data.pv_only.irr * 100).toFixed(1)}%</div>
+                            <div><strong>Payback:</strong> ${data.pv_only.payback.toFixed(1)} anni</div>
+                            <div><strong>CAPEX:</strong> €${data.pv_only.capex.toLocaleString()}</div>
+                            <div><strong>Risparmi Annuali:</strong> €${data.pv_only.annual_savings.toLocaleString()}</div>
+                        </div>
+                    </div>
+
+                    <!-- FV + BESS -->
+                    <div class="card" style="background: #f0f8ff; border-left: 4px solid #4299e1;">
+                        <h5>🔋 Scenario FV + BESS</h5>
+                        <div style="margin-top: 15px;">
+                            <div><strong>NPV (20 anni):</strong> €${data.pv_bess.npv.toLocaleString()}</div>
+                            <div><strong>IRR:</strong> ${(data.pv_bess.irr * 100).toFixed(1)}%</div>
+                            <div><strong>Payback:</strong> ${data.pv_bess.payback.toFixed(1)} anni</div>
+                            <div><strong>CAPEX:</strong> €${data.pv_bess.capex.toLocaleString()}</div>
+                            <div><strong>Risparmi Annuali:</strong> €${data.pv_bess.annual_savings.toLocaleString()}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BESS Incremental Analysis -->
+                <div class="card" style="background: #fffaf0; border-left: 4px solid #ed8936; margin-bottom: 15px;">
+                    <h5>🔋 Analisi Incrementale BESS</h5>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div><strong>NPV Incrementale:</strong> €${data.bess_incremental.npv.toLocaleString()}</div>
+                        <div><strong>IRR Incrementale:</strong> ${(data.bess_incremental.irr * 100).toFixed(1)}%</div>
+                        <div><strong>Payback Incrementale:</strong> ${data.bess_incremental.payback === Infinity ? '∞' : data.bess_incremental.payback.toFixed(1)} anni</div>
+                    </div>
+                </div>
+
+                <!-- Economic Parameters -->
+                <div class="card" style="background: #f7fafc; border-left: 4px solid #718096;">
+                    <h5>⚙️ Parametri Economici Utilizzati</h5>
+                    <div style="margin-top: 15px;">
+                        <div><strong>WACC:</strong> ${(data.economic_parameters.wacc * 100).toFixed(1)}%</div>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                            <em>${data.economic_parameters.wacc_explanation}</em>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <strong>Prezzi Energia:</strong>
+                            <div style="margin-left: 20px;">
+                                <div>F1 (Punta): €${data.economic_parameters.electricity_prices.f1_peak}/kWh</div>
+                                <div>F2 (Intermedia): €${data.economic_parameters.electricity_prices.f2_intermediate}/kWh</div>
+                                <div>F3 (Base): €${data.economic_parameters.electricity_prices.f3_base}/kWh</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <strong>Costi CAPEX:</strong>
+                            <div style="margin-left: 20px;">
+                                <div>FV: €${data.economic_parameters.capex_costs.pv_per_kwp}/kWp</div>
+                                <div>BESS: €${data.economic_parameters.capex_costs.bess_per_kwh}/kWh</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+            resultsDiv.style.display = 'block';
+            
+            // Mostra il pulsante per generare il report quando l'analisi economica è completata
+            document.getElementById('generateReportBtn').style.display = 'inline-block';
+        }
+
+        // Report generation function
+        async function generateReport() {
+            if (!window.currentProjectId) {
+                alert('Nessun progetto selezionato');
+                return;
+            }
+
+            const spinner = document.getElementById('reportSpinner');
+            const btn = document.getElementById('generateReportBtn');
+            
+            spinner.classList.remove('hidden');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/projects/${window.currentProjectId}/generate-report`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    // Il server restituisce il file PDF
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    
+                    // Crea un link temporaneo per il download
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    
+                    // Estrae il nome del file dall'header Content-Disposition
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename = 'report.pdf';
+                    if (contentDisposition) {
+                        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                        if (filenameMatch) {
+                            filename = filenameMatch[1];
+                        }
+                    }
+                    
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    // Cleanup
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    showAlert('projectDetailsAlert', 'Report PDF generato e scaricato con successo!', 'success');
+                } else {
+                    const errorData = await response.json();
+                    showAlert('projectDetailsAlert', errorData.error || 'Errore nella generazione del report', 'error');
+                }
+            } catch (error) {
+                console.error('Errore generazione report:', error);
+                showAlert('projectDetailsAlert', 'Errore di connessione durante la generazione del report', 'error');
+            } finally {
+                spinner.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Existing event listeners...
+            document.getElementById('geometryForm').addEventListener('submit', handleGeometryCalculation);
+        });
+
+        // Utility functions
+        function showAlert(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            
+            // Auto-hide success alerts
+            if (type === 'success') {
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>
+
